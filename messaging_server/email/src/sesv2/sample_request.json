@@ -1,0 +1,12 @@
+{
+  // content의 괄호안의 값은 alphabet 또는 digit만 가능하며, 하이픈,언더바 모두 사용 불가능
+  "from_email": "chan@develop.stclab.com",
+  "content_subject": "test email subject {{subject}}",
+  "content_html": "<h2> {{SUBJECT}} </h2> <a href={{customLink1}}> <h3> this is test link </h3></a>",
+  "to_email_and_content": [
+    {
+      "to_email": "chan@stclab.com",
+      "replacement_template_json": "{ \"subject\":\"Hello Rust!\", \"customLink1\": \"www.naver.com\", \"SUBJECT\": \"HELLO STC!\" }"
+    }
+  ]
+}

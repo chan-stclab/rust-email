@@ -1,0 +1,9 @@
+[package]
+name = "email"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aws-config = "1.5.10"
+aws-sdk-sesv2 = "1.57.0"
+serde = {version = "1.0.215", features = ["derive"]}
