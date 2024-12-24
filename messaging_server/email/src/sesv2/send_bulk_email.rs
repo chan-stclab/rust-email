@@ -1,10 +1,9 @@
 use super::email_logger::make_log_file_of_sesv2_response;
-use std::{borrow::Borrow, collections::HashMap, time};
+use std::{collections::HashMap, time};
 
 use super::model::BulkEamilEntriesSESV2;
 
 use aws_sdk_sesv2::{
-    error::SdkError,
     operation::send_bulk_email::SendBulkEmailError,
     types::{
         BulkEmailContent, BulkEmailEntry, BulkEmailStatus, Destination, EmailTemplateContent,
@@ -68,18 +67,28 @@ pub async fn send_bulk_email(
 ) -> Result<String, SendBulkEmailError> {
     // count time
     let begin_ts = time::SystemTime::now();
+    let content_subject: String = formatted_content
+        .template
+        .as_ref()
+        .unwrap()
+        .template_content
+        .as_ref()
+        .unwrap()
+        .subject
+        .clone()
+        .unwrap();
 
     let num_of_email = formatted_bulk_eamil_entries.len();
     let send_bulk_response_result = sesv2_client
         .send_bulk_email()
-        .from_email_address(from_email)
+        .from_email_address(from_email.clone())
         .set_bulk_email_entries(Some(formatted_bulk_eamil_entries))
         .default_content(formatted_content)
         .send()
         .await;
 
     let mut counter: HashMap<String, u32> = HashMap::new();
-
+    let mut err_log: String = String::from("");
     let result = match send_bulk_response_result {
         Ok(response) => {
             for res in response.bulk_email_entry_results {
@@ -94,8 +103,12 @@ pub async fn send_bulk_email(
             ))
         }
         // TODO: alert 추가 (필요시)
-        Err(err) => Err(err.into_service_error()),
+        Err(err) => {
+            let service_error = err.into_service_error();
+            err_log = service_error.to_string();
+            Err(service_error)
+        }
     };
-    make_log_file_of_sesv2_response(num_of_email, begin_ts);
+    make_log_file_of_sesv2_response(from_email, content_subject, num_of_email, begin_ts, err_log);
     return result;
 }
